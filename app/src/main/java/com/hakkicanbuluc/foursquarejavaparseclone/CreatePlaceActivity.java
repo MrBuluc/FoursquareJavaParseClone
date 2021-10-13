@@ -86,14 +86,15 @@ public class CreatePlaceActivity extends AppCompatActivity {
         String atmosphere = atmosphereText.getText().toString();
 
         if (!name.isEmpty() && !type.isEmpty() && !atmosphere.
-                isEmpty() && chosenImage == null) {
+                isEmpty() && chosenImage != null) {
             PlacesClass placesClass = PlacesClass.getInstance();
             placesClass.setName(name);
             placesClass.setType(type);
             placesClass.setAtmosphere(atmosphere);
             placesClass.setImage(chosenImage);
 
-
+            Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
+            startActivity(intent);
         }
     }
 }
