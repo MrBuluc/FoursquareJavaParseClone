@@ -16,6 +16,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -27,7 +28,13 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.parse.ParseException;
+import com.parse.ParseFile;
 import com.parse.ParseObject;
+import com.parse.ParseUser;
+import com.parse.SaveCallback;
+
+import java.io.ByteArrayOutputStream;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleMap.OnMapLongClickListener {
@@ -52,8 +59,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.save_place) {
             upload();
-            Intent intent = new Intent(getApplicationContext(), LocationsActivity.class);
-            startActivity(intent);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -189,11 +194,28 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         String atmosphere = placesClass.getAtmosphere();
         Bitmap image = placesClass.getImage();
 
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        image.compress(Bitmap.CompressFormat.PNG, 50, byteArrayOutputStream);
+        byte[] bytes = byteArrayOutputStream.toByteArray();
+
+        ParseFile parseFile = new ParseFile("image.png", bytes);
+
         ParseObject object = new ParseObject("Places");
         object.put("name", name);
         object.put("type", type);
         object.put("atmosphere", atmosphere);
         object.put("latitude", latitudeStr);
         object.put("longitude", longitudeStr);
+        object.put("image", parseFile);
+        object.put("username", ParseUser.getCurrentUser().getUsername());
+
+        object.saveInBackground(e -> {
+            if (e != null) {
+                Toast.makeText(getApplicationContext(), e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+            } else {
+                Intent intent = new Intent(getApplicationContext(), LocationsActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 }
